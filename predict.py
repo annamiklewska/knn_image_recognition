@@ -1,0 +1,131 @@
+import pickle as pkl
+import numpy as np
+
+
+def read_file(file_name):
+    with open(file_name, 'rb') as f:
+        return pkl.load(f)
+
+
+def euclidean_dist(instance1, instance2):
+    return np.linalg.norm(np.subtract(instance1, instance2))
+
+
+def get_distances(data, instance):
+    return np.array([euclidean_dist(data[i], instance) for i in range(data.shape[0])])
+
+
+def add_labels(distances, labels):
+    return np.array([(distances[i], labels[i]) for i in range(distances.shape[0])])
+
+
+def get_sorted_distances_with_labels(distances_with_labels):
+    order = np.argsort(distances_with_labels[:,0], kind='mergesort')
+    return distances_with_labels[order]
+
+
+def get_neighbors(sorted_distances_with_labels, k):
+    return np.array([sorted_distances_with_labels[i] for i in range(k)])
+
+
+def pick_label(neighbors):
+    labels = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    k = neighbors.shape[0]
+    for i in range(k):
+        labels[int(neighbors[i][1])] += 1
+    best = np.where(labels == np.amax(labels))
+    while best[0].shape[0] > 1:
+        best = pick_label(get_neighbors(neighbors, k - 1))
+        if np.isscalar(best):
+            break
+    if np.isscalar(best):
+        return best
+    else:
+        return best[0][0]
+
+
+def get_prediction(data, train_data, labels, k):
+    return np.array([pick_label(get_neighbors(get_sorted_distances_with_labels(add_labels(get_distances(train_data, data[i]), labels)), k)) for i in range(data.shape[0])])
+
+
+def predict(x):
+
+    """
+    Function takes images as the argument. They are stored in the matrix X (NxD).
+    Function returns a vector y (Nx1), where each element of the vector is a class numer {0, ..., 9} associated with recognized type of cloth.
+    :param x: matrix NxD
+    :return: vector Nx1
+    """
+
+    k = 5
+    data = read_file('traindata_700.pkl')
+
+    labels = read_file('trainlabels_700.pkl')
+
+    #all_data = read_file('data_20k_3.pkl')
+    #data = all_data[2500:4000]
+
+    #all_labels = read_file('labels_20k_3.pkl')
+    #labels = all_labels[2500:4000]
+
+    result = np.array([pick_label(get_neighbors(get_sorted_distances_with_labels(add_labels(get_distances(data, x[i]), labels)), k)) for i in range(x.shape[0])])
+
+    data = None
+    labels = None
+
+
+    #result = np.array([i for i in range(x.shape[0])])
+    return result
+
+
+
+
+
+
+
+
+
+
+'''
+def get_accuracy(test_data, test_labels, predictions):
+    correct = 0
+    td = len(test_data)
+    tp = len(predictions)
+    if td is not tp:
+        print("PROBLEM: ", td, tp)
+    for x in range(len(test_data)):
+    #for x in range(1500):
+        a = test_labels[x]
+        b = predictions[x]
+        if a == b:
+            correct += 1
+    return (correct / float(len(test_data))) * 100.0
+
+
+start = time.time()
+
+
+all_data = read_file('data_20k_3.pkl')
+test_data = all_data[:2500]
+#train_data = all_data[2500:4000]
+
+all_labels = read_file('labels_20k_3.pkl')
+test_labels = all_labels[0:2500]
+#train_labels = all_labels[25000:4000]
+
+#data = read_file('testdata_2500.pkl')
+#labels = read_file('testlabels_2500.pkl')
+
+print("data done")
+
+prediction = predict(test_data)
+
+end = time.time() - start
+print("Time of execution: ", end)
+
+accuracy = get_accuracy(test_data, test_labels, prediction)
+print("Accuracy: ", accuracy, "%")
+
+print("Predicted labels: ", prediction)
+print("Actual labels: ", test_labels)
+'''

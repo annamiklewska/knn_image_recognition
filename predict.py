@@ -44,10 +44,6 @@ def pick_label(neighbors):
         return best[0][0]
 
 
-def get_prediction(data, train_data, labels, k):
-    return np.array([pick_label(get_neighbors(get_sorted_distances_with_labels(add_labels(get_distances(train_data, data[i]), labels)), k)) for i in range(data.shape[0])])
-
-
 def predict(x):
 
     """
@@ -56,76 +52,9 @@ def predict(x):
     :param x: matrix NxD
     :return: vector Nx1
     """
-
     k = 5
     data = read_file('traindata_700.pkl')
 
     labels = read_file('trainlabels_700.pkl')
-
-    #all_data = read_file('data_20k_3.pkl')
-    #data = all_data[2500:4000]
-
-    #all_labels = read_file('labels_20k_3.pkl')
-    #labels = all_labels[2500:4000]
-
-    result = np.array([pick_label(get_neighbors(get_sorted_distances_with_labels(add_labels(get_distances(data, x[i]), labels)), k)) for i in range(x.shape[0])])
-
-    data = None
-    labels = None
-
-
-    #result = np.array([i for i in range(x.shape[0])])
-    return result
-
-
-
-
-
-
-
-
-
-
-'''
-def get_accuracy(test_data, test_labels, predictions):
-    correct = 0
-    td = len(test_data)
-    tp = len(predictions)
-    if td is not tp:
-        print("PROBLEM: ", td, tp)
-    for x in range(len(test_data)):
-    #for x in range(1500):
-        a = test_labels[x]
-        b = predictions[x]
-        if a == b:
-            correct += 1
-    return (correct / float(len(test_data))) * 100.0
-
-
-start = time.time()
-
-
-all_data = read_file('data_20k_3.pkl')
-test_data = all_data[:2500]
-#train_data = all_data[2500:4000]
-
-all_labels = read_file('labels_20k_3.pkl')
-test_labels = all_labels[0:2500]
-#train_labels = all_labels[25000:4000]
-
-#data = read_file('testdata_2500.pkl')
-#labels = read_file('testlabels_2500.pkl')
-
-print("data done")
-
-prediction = predict(test_data)
-
-end = time.time() - start
-print("Time of execution: ", end)
-
-accuracy = get_accuracy(test_data, test_labels, prediction)
-print("Accuracy: ", accuracy, "%")
-
-print("Predicted labels: ", prediction)
-print("Actual labels: ", test_labels)
-'''
+    
+    return np.transpose(np.array([[pick_label(get_neighbors(get_sorted_distances_with_labels(add_labels(get_distances(data, x[i]), labels)), k)) for i in range(x.shape[0])]]))
